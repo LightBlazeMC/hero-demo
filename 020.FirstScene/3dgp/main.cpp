@@ -446,6 +446,12 @@ void onRender()
 	float deltaTime = time - prev;						// time since last frame
 	prev = time;										// framerate is 1/deltaTime
 
+	createShadowMap(lookAt(
+		vec3(-2.55f, 4.24f, -1.0f), // coordinates of the source of the light
+		vec3(0.0f, 3.0f, 0.0f), // coordinates of a point within or behind the scene
+		vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+		time, deltaTime);
+
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
