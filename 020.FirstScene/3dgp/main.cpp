@@ -34,6 +34,7 @@ GLuint idTexNone;
 GLuint idTexFabric2;
 GLuint idTexBrass;
 GLuint idTexShadowMap; // for shadow map
+GLuint idFBO;
 
 // The View Matrix
 mat4 matrixView;
@@ -183,6 +184,19 @@ bool init()
 		vec3(0.0, 20.0, 10.0),
 		vec3(0.0, 20.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
+
+	// frame buffer
+	// Create a framebuffer object (FBO)
+	glGenFramebuffers(1, &idFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER_EXT, idFBO);
+	// Instruct openGL that we won't bind a color texture with the currently binded FBO
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	// attach the texture to FBO depth attachment point
+	glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, idTexShadowMap, 0);
+	// switch back to window-system-provided framebuffer
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
 
 	// setup the screen background colour
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
