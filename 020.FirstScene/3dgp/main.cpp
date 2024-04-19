@@ -14,6 +14,11 @@ using namespace std;
 using namespace _3dgl;
 using namespace glm;
 
+//fix compiler errors
+void renderScene(mat4& matrixView, float time, float deltaTime);
+void onReshape(int w, int h);
+
+
 // 3D models
 C3dglModel camera;
 C3dglModel table;
@@ -52,7 +57,6 @@ C3dglProgram program;
 unsigned vertexBuffer = 0;
 unsigned normalBuffer = 0;
 unsigned indexBuffer = 0;
-
 
 bool init()
 {
@@ -211,6 +215,51 @@ bool init()
 
 
 	return true;
+}
+
+// Creates a shadow map and stores in idFBO
+// lightTransform - lookAt transform corresponding to the light position predominant direction
+void createShadowMap(mat4 lightTransform, float time, float deltaTime)
+{
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	// Store the current viewport in a safe place
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	int w = viewport[2], h = viewport[3];
+	// setup the viewport to 2x2 the original and wide (120 degrees) FoV (Field of View)
+	glViewport(0, 0, w * 2, h * 2);
+	mat4 matrixProjection = perspective(radians(160.f), (float)w / (float)h, 0.5f, 50.0f);
+	program.sendUniform("matrixProjection", matrixProjection);
+	// prepare the camera
+	mat4 matrixView = lightTransform;
+	// send the View Matrix
+	program.sendUniform("matrixView", matrixView);
+	// Bind the Framebuffer
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
+	// OFF-SCREEN RENDERING FROM NOW!
+	// Clear previous frame values - depth buffer only!
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// Disable color rendering, we only want to write to the Z-Buffer (this is to speed-up)
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	// Prepare and send the Shadow Matrix - this is matrix transform every coordinate x,y,z
+	//x = x * 0.5 + 0.5;
+	//y = y * 0.5 + 0.5;
+	//z = z * 0.5 + 0.5;
+	// Moving from unit cube [-1,1] to [0,1] 
+	const mat4 bias = {
+	{ 0.5, 0.0, 0.0, 0.0 },
+	{ 0.0, 0.5, 0.0, 0.0 },
+	{ 0.0, 0.0, 0.5, 0.0 },
+	{ 0.5, 0.5, 0.5, 1.0 }
+	};
+	program.sendUniform("matrixShadow", bias * matrixProjection * matrixView);
+	// Render all objects in the scene
+	renderScene(matrixView, time, deltaTime);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDisable(GL_CULL_FACE);
+	onReshape(w, h);
 }
 
 void renderScene(mat4& matrixView, float time, float deltaTime)
@@ -487,6 +536,7 @@ void onReshape(int w, int h)
 	program.sendUniform("matrixProjection", matrixProjection);
 }
 
+
 // Handle WASDQE keys
 void onKeyDown(unsigned char key, int x, int y)
 {
@@ -586,51 +636,6 @@ void onMouseWheel(int button, int dir, int x, int y)
 {
 	_fov = glm::clamp(_fov - dir * 5.f, 5.0f, 175.f);
 	onReshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-}
-
-// Creates a shadow map and stores in idFBO
-// lightTransform - lookAt transform corresponding to the light position predominant direction
-void createShadowMap(mat4 lightTransform, float time, float deltaTime)
-{
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	// Store the current viewport in a safe place
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	int w = viewport[2], h = viewport[3];
-	// setup the viewport to 2x2 the original and wide (120 degrees) FoV (Field of View)
-	glViewport(0, 0, w * 2, h * 2);
-	mat4 matrixProjection = perspective(radians(160.f), (float)w / (float)h, 0.5f, 50.0f);
-	program.sendUniform("matrixProjection", matrixProjection);
-	// prepare the camera
-	mat4 matrixView = lightTransform;
-	// send the View Matrix
-	program.sendUniform("matrixView", matrixView);
-	// Bind the Framebuffer
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
-	// OFF-SCREEN RENDERING FROM NOW!
-	// Clear previous frame values - depth buffer only!
-	glClear(GL_DEPTH_BUFFER_BIT);
-	// Disable color rendering, we only want to write to the Z-Buffer (this is to speed-up)
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	// Prepare and send the Shadow Matrix - this is matrix transform every coordinate x,y,z
-	// x = x* 0.5 + 0.5 
-	// y = y* 0.5 + 0.5 
-	// z = z* 0.5 + 0.5 
-	// Moving from unit cube [-1,1] to [0,1] 
-	const mat4 bias = {
-	{ 0.5, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.5, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.5, 0.0 },
-	{ 0.5, 0.5, 0.5, 1.0 }
-	};
-	program.sendUniform("matrixShadow", bias * matrixProjection * matrixView);
-	// Render all objects in the scene
-	renderScene(matrixView, time, deltaTime);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDisable(GL_CULL_FACE);
-	onReshape(w, h);
 }
 
 
