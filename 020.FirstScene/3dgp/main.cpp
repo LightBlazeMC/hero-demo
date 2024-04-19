@@ -33,6 +33,7 @@ GLuint idTexWood;
 GLuint idTexNone;
 GLuint idTexFabric2;
 GLuint idTexBrass;
+GLuint idTexShadowMap; // for shadow map
 
 // The View Matrix
 mat4 matrixView;
@@ -153,6 +154,28 @@ bool init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	BYTE bytes[] = { 255, 255, 255 };
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
+
+	//shadow map
+	// Create shadow map texture
+	glActiveTexture(GL_TEXTURE7);
+	glGenTextures(1, &idTexShadowMap);
+	glBindTexture(GL_TEXTURE_2D, idTexShadowMap);
+	// Texture parameters - to get nice filtering & avoid artefact on the edges of the shadowmap
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+	// This will associate the texture with the depth component in the Z-buffer
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	int w = viewport[2], h = viewport[3];
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w * 2, h * 2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	// Send the texture info to the shaders
+	program.sendUniform("shadowMap", 7);
+	// revert to texture unit 0
+	glActiveTexture(GL_TEXTURE0);
 
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1), radians(12.f), vec3(1, 0, 0));
@@ -552,7 +575,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(1280, 720);
-	glutCreateWindow("3DGL Scene: Level 2");
+	glutCreateWindow("3DGL Scene: Level 3 (Hero Demo) - Mac (K2120853)");
 
 	// init glew
 	GLenum err = glewInit();
