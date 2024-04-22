@@ -15,6 +15,8 @@ in vec4 position;
 in vec3 normal;
 vec3 normalNew;
 
+in vec4 shadowCoord;
+uniform sampler2DShadow shadowMap;
 
 uniform float att_quadratic;
 
@@ -142,6 +144,13 @@ void main(void)
   outColor += PointLight(lightPoint0);
   outColor += PointLight(lightPoint1);
   outColor += SpotLight(lightSpot);
+
+  // Calculation of the shadow
+	float shadow = 1.0;
+	 // if shadowCoord.w < 0 fragment is out of the Light POV
+	if (shadowCoord.w > 0)	{
+		shadow = 0.5 + 0.5 * textureProj(shadowMap, shadowCoord);
+		}
   outColor *= texture(texture0, texCoord0);
+  outColor *= shadow;
 }
-//

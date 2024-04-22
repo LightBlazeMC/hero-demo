@@ -12,6 +12,9 @@ uniform vec3 materialDiffuse;
 uniform vec3 materialSpecular;
 uniform float shininess;
 
+uniform mat4 matrixShadow;
+out vec4 shadowCoord;
+
 in vec3 aVertex;
 in vec3 aNormal;
 
@@ -83,4 +86,8 @@ void main(void)
 
 	// calculate texture coordinate
 	texCoord0 = aTexCoord;
+
+	// calculate shadow coordinate – using the Shadow Matrix
+	mat4 matrixModel = inverse(matrixView) * matrixModelView;
+	shadowCoord = matrixShadow * matrixModel * vec4(aVertex + aNormal * 0.1, 1);
 }
