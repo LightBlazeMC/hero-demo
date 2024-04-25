@@ -29,6 +29,7 @@ C3dglModel room;
 C3dglModel ceilingLamp;
 C3dglModel zomb;
 C3dglModel logs;
+C3dglModel streetLamp;
 
 //textures
 C3dglBitmap wood;
@@ -131,6 +132,9 @@ bool init()
 	if (!logs.load("models\\Wood.obj")) return false;
 	logs.loadMaterials("models\\");
 
+	if (!streetLamp.load("models\\rv_lamp_post_4.obj")) return false;
+	streetLamp.loadMaterials("models\\");
+
 	//load textures
 	wood.load("models/oak.bmp", GL_RGBA);
 	if (!wood.getBits()) return false;
@@ -188,11 +192,11 @@ bool init()
 	glActiveTexture(GL_TEXTURE0);
 
 	// Initialise the View Matrix (initial position of the camera)
-	matrixView = rotate(mat4(1), radians(12.f), vec3(1, 0, 0));
+	matrixView = rotate(mat4(1), radians(8.f), vec3(1, 0, 0));
 	matrixView *= lookAt(
-		vec3(0.0, 20.0, 50.0),
-		vec3(0.0, 20.0, 0.0),
-		vec3(0.0, 1.0, 0.0));
+		vec3(0.0, 20.0, 60.0),
+		vec3(0.0, 20.0, 30.0),
+		vec3(0.0, 1, 0.0));
 
 	// frame buffer
 	// Create a framebuffer object (FBO)
@@ -208,7 +212,8 @@ bool init()
 
 
 	// setup the screen background colour
-	glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
+
+	glClearColor(0.1f, 0.2f, 0.4f, 1.0f);
 
 	cout << endl;
 	cout << "Use:" << endl;
@@ -429,12 +434,12 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	//ceilingLamp.render(m);
 
 	//spotlight
-	//program.sendUniform("lightSpot.matrix",m);
-	//program.sendUniform("lightSpot.attenuation", float(1.2f));
-	//program.sendUniform("lightSpot.position", vec3(24.f, 20.0f, 0.f));
-	//program.sendUniform("lightSpot.diffuse", vec3(1.0, 1.0, 1.0));
-	//program.sendUniform("lightSpot.direction", vec3(0, -1, 0));
-	//program.sendUniform("lightSpot.cutoff", radians(25.0f));
+	program.sendUniform("lightSpot.matrix",m);
+	program.sendUniform("lightSpot.attenuation", float(0.2f));
+	program.sendUniform("lightSpot.position", vec3(-130.f, 45.0f, 30.f));
+	program.sendUniform("lightSpot.diffuse", vec3(1.2, 1.2, 2.0));
+	program.sendUniform("lightSpot.direction", vec3(0, -1, 0));
+	program.sendUniform("lightSpot.cutoff", radians(25.0f));
 
 	//char
 
@@ -458,6 +463,13 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = scale(m, vec3(1.5f, 1.5f, 4.f));
 	m = translate(m, vec3(-15, 1, 0));
 	logs.render(m);
+
+	//street lamp
+	m = matrixView;
+	m = rotate(m, radians(40.f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(1.5f, 1.5f, 1.5f));
+	m = translate(m, vec3(-20, 0.8, -10));
+	streetLamp.render(m);
 
 }
 
