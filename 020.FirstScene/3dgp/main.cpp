@@ -28,6 +28,7 @@ C3dglModel lamp;
 C3dglModel room;
 C3dglModel ceilingLamp;
 C3dglModel zomb;
+C3dglModel logs;
 
 //textures
 C3dglBitmap wood;
@@ -127,6 +128,9 @@ bool init()
 	zomb.loadMaterials("models\\");
 	zomb.loadAnimations();
 
+	if (!logs.load("models\\Wood.obj")) return false;
+	logs.loadMaterials("models\\");
+
 	//load textures
 	wood.load("models/oak.bmp", GL_RGBA);
 	if (!wood.getBits()) return false;
@@ -186,7 +190,7 @@ bool init()
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1), radians(12.f), vec3(1, 0, 0));
 	matrixView *= lookAt(
-		vec3(0.0, 20.0, 30.0),
+		vec3(0.0, 20.0, 50.0),
 		vec3(0.0, 20.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
 
@@ -442,11 +446,18 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	zomb.render(m);
 
 	
-
+	//room
 	m = matrixView;
 	m = scale(m, vec3(10.f, 10.f, 10.f));
 	m = translate(m, vec3(0, -0.28f, 0));
 	room.render(m);
+
+	//logs
+	m = matrixView;
+	m = rotate(m, radians(40.f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(1.5f, 1.5f, 4.f));
+	m = translate(m, vec3(-15, 1, 0));
+	logs.render(m);
 
 }
 
