@@ -250,7 +250,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = translate(m, vec3(2.0f, 0, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.04f, 0.04f, 0.04f));
-	camera.render(m);
+	//camera.render(m);
 
 	//ambient light
 	program.sendUniform("materialAmbient", vec3(0.6f, 0.6f, 0.6f));
@@ -269,17 +269,17 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 
 	// specular point light 1
 	program.sendUniform("lightPoint0.position", vec3(28.0f, 17.5f, 4.0f));
-	program.sendUniform("lightPoint0.diffuse", vec3(0.7, 0.7, 0.7));
+	program.sendUniform("lightPoint0.diffuse", vec3(1.7, 1.7, 1.7));
 	program.sendUniform("lightPoint0.specular", vec3(1.0, 1.0, 1.0));
 
 	// specular point light 2
 	program.sendUniform("lightPoint1.position", vec3(13.8f, 17.5f, -4.0f));
-	program.sendUniform("lightPoint1.diffuse", vec3(0.7, 0.7, 0.7));
+	program.sendUniform("lightPoint1.diffuse", vec3(1.7, 1.7, 1.7));
 	program.sendUniform("lightPoint1.specular", vec3(1.0, 1.0, 1.0));
 
 	//fog
-	program.sendUniform("fogColour", vec3(0.1f, 0.2f, 0.25f));
-	program.sendUniform("fogDensity", (0.006f));
+	program.sendUniform("fogColour", vec3(0.1f, 0.19f, 0.28f));
+	program.sendUniform("fogDensity", (0.0075f));
 
 	//setup materials - blue
 	//program.sendUniform("material", vec3(0.6f, 0.6f, 0.6f));
