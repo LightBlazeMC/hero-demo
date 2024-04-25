@@ -139,6 +139,7 @@ void main(void)
 		normalNew = normal;
 	}
 
+
   outColor = color;
   outColor += DirectionalLight(lightDir);
   outColor += PointLight(lightPoint0);

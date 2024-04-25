@@ -15,8 +15,8 @@ using namespace _3dgl;
 using namespace glm;
 
 //fix compiler errors
-void renderScene(mat4& matrixView, float time, float deltaTime);
-void onReshape(int w, int h);
+//void renderScene(mat4& matrixView, float time, float deltaTime);
+//void onReshape(int w, int h);
 
 
 // 3D models
@@ -118,8 +118,9 @@ bool init()
 	if (!pomegranate.load("models\\pomegranate.obj")) return false;
 	if (!vase.load("models\\vase.obj")) return false;
 	if (!lamp.load("models\\lamp.obj")) return false;
-	if (!room.load("models\\Castle\\Castle.obj")) return false;
-	room.loadMaterials("models\\Castle\\");
+	if (!room.load("models\\Castle\\Castle OBJ.obj")) return false;
+	//if (!room.load("models\\Castle\\Castle OBJ.obj")) return false;
+	//room.loadMaterials("models\\Castle\\Castle OBJ");
 	if (!ceilingLamp.load("models\\ceilinglamp.3ds")) return false;
 
 	if (!zomb.load("models\\zomb.fbx")) return false;
@@ -185,7 +186,7 @@ bool init()
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1), radians(12.f), vec3(1, 0, 0));
 	matrixView *= lookAt(
-		vec3(0.0, 20.0, 10.0),
+		vec3(0.0, 20.0, 30.0),
 		vec3(0.0, 20.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
 
@@ -203,7 +204,7 @@ bool init()
 
 
 	// setup the screen background colour
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
 
 	cout << endl;
 	cout << "Use:" << endl;
@@ -217,51 +218,6 @@ bool init()
 	return true;
 }
 
-// Creates a shadow map and stores in idFBO
-// lightTransform - lookAt transform corresponding to the light position predominant direction
-void createShadowMap(mat4 lightTransform, float time, float deltaTime)
-{
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	// Store the current viewport in a safe place
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	int w = viewport[2], h = viewport[3];
-	// setup the viewport to 2x2 the original and wide (120 degrees) FoV (Field of View)
-	glViewport(0, 0, w * 2, h * 2);
-	mat4 matrixProjection = perspective(radians(160.f), (float)w / (float)h, 0.5f, 50.0f);
-	program.sendUniform("matrixProjection", matrixProjection);
-	// prepare the camera
-	mat4 matrixView = lightTransform;
-	// send the View Matrix
-	program.sendUniform("matrixView", matrixView);
-	// Bind the Framebuffer
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
-	// OFF-SCREEN RENDERING FROM NOW!
-	// Clear previous frame values - depth buffer only!
-	glClear(GL_DEPTH_BUFFER_BIT);
-	// Disable color rendering, we only want to write to the Z-Buffer (this is to speed-up)
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	// Prepare and send the Shadow Matrix - this is matrix transform every coordinate x,y,z
-	//x = x * 0.5 + 0.5;
-	//y = y * 0.5 + 0.5;
-	//z = z * 0.5 + 0.5;
-	// Moving from unit cube [-1,1] to [0,1] 
-	const mat4 bias = {
-	{ 0.5, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.5, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.5, 0.0 },
-	{ 0.5, 0.5, 0.5, 1.0 }
-	};
-	program.sendUniform("matrixShadow", bias * matrixProjection * matrixView);
-	// Render all objects in the scene
-	renderScene(matrixView, time, deltaTime);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDisable(GL_CULL_FACE);
-	onReshape(w, h);
-}
-
 void renderScene(mat4& matrixView, float time, float deltaTime)
 {
 	mat4 m;
@@ -271,23 +227,18 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	zomb.getAnimData(0, time, transform);
 	program.sendUniform("bones", &transform[0], transform.size());
 
-	program.sendUniform("att_quadratic", 0.02f);
+	program.sendUniform("att_quadratic", 0.3f);
 
 	//room
 	// Setup NORMAL texturing
-	program.sendUniform("useNormalMap", true);
+	program.sendUniform("useNormalMap", false);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, idTexNormal);
 	program.sendUniform("textureNormal", 1);
 
-	m = matrixView;
-	m = scale(m, vec3(0.09f, 0.09f, 0.09f));
-	m = translate(m, vec3(290.0f, 0.0f, -120.0f));
-	room.render(m);
 
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, idTexNone);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, idTexNone);
 
 	program.sendUniform("texture0", 0);
 
@@ -302,11 +253,11 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	camera.render(m);
 
 	//ambient light
-	program.sendUniform("materialAmbient", vec3(0.2f, 0.2f, 0.2f));
-	program.sendUniform("lightAmbient.color", vec3(0.1, 0.1, 0.1));
+	program.sendUniform("materialAmbient", vec3(0.6f, 0.6f, 0.6f));
+	program.sendUniform("lightAmbient.color", vec3(0.1, 0.1, 0.15));
 
 	//diffuse light
-	program.sendUniform("materialDiffuse", vec3(0.3, 0.3, 0.3));
+	program.sendUniform("materialDiffuse", vec3(0.6, 0.6, 0.6));
 
 	//directional diffuse light
 	program.sendUniform("lightDir.direction", vec3(1.0, 0.5, 1.0));
@@ -454,22 +405,22 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("matrixModelView", m);
 	glutSolidSphere(1, 32, 32);
 
-	//ceiling lamp
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, idTexNone);
+	////ceiling lamp
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, idTexNone);
 
-	// Pendulum mechanics
-	static float alpha = 0; // angular position (swing)
-	static float omega = 0.7f; // angular velocity
-	deltaTime = glm::min(deltaTime, 0.2f); // remove time distortions (longer than 0.2s)
-	omega -= alpha * 0.05f * deltaTime; // Hooke's law: acceleration proportional to swing
-	alpha += omega * deltaTime * 50; // motion equation: swing += velocity * delta-time
+	//// Pendulum mechanics
+	//static float alpha = 0; // angular position (swing)
+	//static float omega = 0.7f; // angular velocity
+	//deltaTime = glm::min(deltaTime, 0.2f); // remove time distortions (longer than 0.2s)
+	//omega -= alpha * 0.05f * deltaTime; // Hooke's law: acceleration proportional to swing
+	//alpha += omega * deltaTime * 50; // motion equation: swing += velocity * delta-time
 
-	m = matrixView;
-	m = scale(m, vec3(0.1f, 0.05f, 0.1f));
-	m = translate(m, vec3(250.0f, 610.0f, 0.0f));
-	m = rotate(m, radians(alpha), vec3(0.5, 0, 1));
-	ceilingLamp.render(m);
+	//m = matrixView;
+	//m = scale(m, vec3(0.1f, 0.05f, 0.1f));
+	//m = translate(m, vec3(250.0f, 610.0f, 0.0f));
+	//m = rotate(m, radians(alpha), vec3(0.5, 0, 1));
+	//ceilingLamp.render(m);
 
 	//spotlight
 	//program.sendUniform("lightSpot.matrix",m);
@@ -480,11 +431,76 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	//program.sendUniform("lightSpot.cutoff", radians(25.0f));
 
 	//char
+
+	program.sendUniform("useNormalMap", false);
 	m = matrixView;
+	m = rotate(m, radians(40.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.06, 0.06, 0.06));
-	m = translate(m, vec3(70, 0, -220));
+	m = translate(m, vec3(-50, 0, 50));
 	zomb.render(m);
 
+	
+
+	m = matrixView;
+	m = scale(m, vec3(10.f, 10.f, 10.f));
+	m = translate(m, vec3(0, -0.28f, 0));
+	room.render(m);
+
+}
+
+// called before window opened or resized - to setup the Projection Matrix
+void onReshape(int w, int h)
+{
+	float ratio = w * 1.0f / h;      // we hope that h is not zero
+	glViewport(0, 0, w, h);
+	mat4 matrixProjection = perspective(radians(_fov), ratio, 0.02f, 1000.f);
+
+	program.sendUniform("matrixProjection", matrixProjection);
+}
+
+// Creates a shadow map and stores in idFBO
+// lightTransform - lookAt transform corresponding to the light position predominant direction
+void createShadowMap(mat4 lightTransform, float time, float deltaTime)
+{
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	// Store the current viewport in a safe place
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	int w = viewport[2], h = viewport[3];
+	// setup the viewport to 2x2 the original and wide (120 degrees) FoV (Field of View)
+	glViewport(0, 0, w * 2, h * 2);
+	mat4 matrixProjection = perspective(radians(160.f), (float)w / (float)h, 0.5f, 50.0f);
+	program.sendUniform("matrixProjection", matrixProjection);
+	// prepare the camera
+	mat4 matrixView = lightTransform;
+	// send the View Matrix
+	program.sendUniform("matrixView", matrixView);
+	// Bind the Framebuffer
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
+	// OFF-SCREEN RENDERING FROM NOW!
+	// Clear previous frame values - depth buffer only!
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// Disable color rendering, we only want to write to the Z-Buffer (this is to speed-up)
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	// Prepare and send the Shadow Matrix - this is matrix transform every coordinate x,y,z
+	//x = x * 0.5 + 0.5;
+	//y = y * 0.5 + 0.5;
+	//z = z * 0.5 + 0.5;
+	// Moving from unit cube [-1,1] to [0,1] 
+	const mat4 bias = {
+	{ 0.5, 0.0, 0.0, 0.0 },
+	{ 0.0, 0.5, 0.0, 0.0 },
+	{ 0.0, 0.0, 0.5, 0.0 },
+	{ 0.5, 0.5, 0.5, 1.0 }
+	};
+	program.sendUniform("matrixShadow", bias * matrixProjection * matrixView);
+	// Render all objects in the scene
+	renderScene(matrixView, time, deltaTime);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDisable(GL_CULL_FACE);
+	onReshape(w, h);
 }
 
 void onRender()
@@ -496,9 +512,10 @@ void onRender()
 	prev = time;										// framerate is 1/deltaTime
 
 	createShadowMap(lookAt(
-		vec3(-2.55f, 4.24f, -1.0f), // coordinates of the source of the light
-		vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
-		vec3(0.0f, -1.0f, 0.0f)), // a reasonable "Up" vector
+		vec3(10, 10, 10), // coordinates of the source of the light
+		//vec3(-2.55f, 4.24f, -1.0f), // coordinates of the source of the light
+		vec3(.0f, 1.f, 1.0f), // coordinates of a point within or behind the scene
+		vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
 		time, deltaTime);
 
 	// clear screen and buffers
@@ -524,16 +541,6 @@ void onRender()
 
 	// proceed the animation
 	glutPostRedisplay();
-}
-
-// called before window opened or resized - to setup the Projection Matrix
-void onReshape(int w, int h)
-{
-	float ratio = w * 1.0f / h;      // we hope that h is not zero
-	glViewport(0, 0, w, h);
-	mat4 matrixProjection = perspective(radians(_fov), ratio, 0.02f, 1000.f);
-
-	program.sendUniform("matrixProjection", matrixProjection);
 }
 
 
