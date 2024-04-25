@@ -15,8 +15,12 @@ uniform float shininess;
 uniform mat4 matrixShadow;
 out vec4 shadowCoord;
 
+uniform float fogDensity;
+
 in vec3 aVertex;
 in vec3 aNormal;
+
+out float fogFactor;
 
 in vec2 aTexCoord;
 out vec2 texCoord0;
@@ -90,4 +94,6 @@ void main(void)
 	// calculate shadow coordinate – using the Shadow Matrix
 	mat4 matrixModel = inverse(matrixView) * matrixModelView;
 	shadowCoord = matrixShadow * matrixModel * vec4(aVertex + aNormal * 0.1, 1);
+
+	fogFactor = exp2(-fogDensity * length(position));
 }

@@ -277,7 +277,9 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("lightPoint1.diffuse", vec3(0.7, 0.7, 0.7));
 	program.sendUniform("lightPoint1.specular", vec3(1.0, 1.0, 1.0));
 
-
+	//fog
+	program.sendUniform("fogColour", vec3(0.1f, 0.2f, 0.25f));
+	program.sendUniform("fogDensity", (0.006f));
 
 	//setup materials - blue
 	//program.sendUniform("material", vec3(0.6f, 0.6f, 0.6f));

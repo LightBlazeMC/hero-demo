@@ -15,6 +15,9 @@ in vec4 position;
 in vec3 normal;
 vec3 normalNew;
 
+uniform vec3 fogColour;
+in float fogFactor;
+
 in vec4 shadowCoord;
 uniform sampler2DShadow shadowMap;
 
@@ -154,4 +157,5 @@ void main(void)
 		}
   outColor *= texture(texture0, texCoord0);
   outColor *= shadow;
+  outColor = mix(vec4(fogColour, 1), outColor, fogFactor);
 }
