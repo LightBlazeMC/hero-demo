@@ -118,8 +118,8 @@ bool init()
 	if (!pomegranate.load("models\\pomegranate.obj")) return false;
 	if (!vase.load("models\\vase.obj")) return false;
 	if (!lamp.load("models\\lamp.obj")) return false;
-	if (!room.load("models\\LivingRoomObj\\LivingRoom.obj")) return false;
-	room.loadMaterials("models\\LivingRoomObj\\");
+	if (!room.load("models\\Castle\\Castle.obj")) return false;
+	room.loadMaterials("models\\Castle\\");
 	if (!ceilingLamp.load("models\\ceilinglamp.3ds")) return false;
 
 	if (!zomb.load("models\\zomb.fbx")) return false;
@@ -271,7 +271,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	zomb.getAnimData(0, time, transform);
 	program.sendUniform("bones", &transform[0], transform.size());
 
-	program.sendUniform("att_quadratic", 0.03f);
+	program.sendUniform("att_quadratic", 0.02f);
 
 	//room
 	// Setup NORMAL texturing
@@ -472,12 +472,12 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	ceilingLamp.render(m);
 
 	//spotlight
-	program.sendUniform("lightSpot.matrix",m);
-	program.sendUniform("lightSpot.attenuation", float(1.2f));
-	program.sendUniform("lightSpot.position", vec3(24.f, 20.0f, 0.f));
-	program.sendUniform("lightSpot.diffuse", vec3(1.0, 1.0, 1.0));
-	program.sendUniform("lightSpot.direction", vec3(0, -1, 0));
-	program.sendUniform("lightSpot.cutoff", radians(25.0f));
+	//program.sendUniform("lightSpot.matrix",m);
+	//program.sendUniform("lightSpot.attenuation", float(1.2f));
+	//program.sendUniform("lightSpot.position", vec3(24.f, 20.0f, 0.f));
+	//program.sendUniform("lightSpot.diffuse", vec3(1.0, 1.0, 1.0));
+	//program.sendUniform("lightSpot.direction", vec3(0, -1, 0));
+	//program.sendUniform("lightSpot.cutoff", radians(25.0f));
 
 	//char
 	m = matrixView;
@@ -497,8 +497,8 @@ void onRender()
 
 	createShadowMap(lookAt(
 		vec3(-2.55f, 4.24f, -1.0f), // coordinates of the source of the light
-		vec3(0.0f, 3.0f, 0.0f), // coordinates of a point within or behind the scene
-		vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+		vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
+		vec3(0.0f, -1.0f, 0.0f)), // a reasonable "Up" vector
 		time, deltaTime);
 
 	// clear screen and buffers
