@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # Don't ignore 3D model files
 !**/models/**
+!**/models/Castle/**
